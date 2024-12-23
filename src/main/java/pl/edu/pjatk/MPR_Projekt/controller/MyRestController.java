@@ -10,6 +10,7 @@ import pl.edu.pjatk.MPR_Projekt.service.CarService;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/cars")
 public class MyRestController {
 
     private final CarService carService;
@@ -19,54 +20,51 @@ public class MyRestController {
         this.carService = carService;
     }
 
-    @GetMapping("/cars")
+    @GetMapping
     public ResponseEntity<List<Car>> getAllCars() {
-        List<Car> cars = CarService.getAllCars();
+        List<Car> cars = carService.getAllCars();
         return new ResponseEntity<>(cars, HttpStatus.OK);
     }
 
-    @PostMapping("/cars")
+    @GetMapping("/{id}")
+    public ResponseEntity<Car> getCarById(@PathVariable Long id) {
+        Car car = carService.getCarById(id);
+        return car != null ? ResponseEntity.ok(car) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<Car> getCarByName(@PathVariable String name) {
+        Car car = carService.getCarByName(name);
+        return car != null ? ResponseEntity.ok(car) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/year/{year}")
+    public ResponseEntity<Car> getCarByYear(@PathVariable int year) {
+        Car car = carService.getCarByYear(year);
+        return car != null ? ResponseEntity.ok(car) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping
     public ResponseEntity<Car> addCar(@RequestBody Car car) {
         Car savedCar = carService.addCar(car);
         return new ResponseEntity<>(savedCar, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/cars/{id}")
-    public ResponseEntity<Void> deleteCar(@PathVariable("id") Long id) {
-        carService.deleteCar(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @GetMapping("/cars/{id}")
-    public ResponseEntity<Car> getCarById(@PathVariable("id") Long id) {
-        Car car = carService.getCarById(id);
-        return new ResponseEntity<>(car, HttpStatus.OK);
-    }
-
-    @PutMapping("/cars/{id}")
-    public ResponseEntity<Car> updateCar(@PathVariable("id") Long id, @RequestBody Car car) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Car> updateCar(@PathVariable Long id, @RequestBody Car car) {
         Car updatedCar = carService.updateCar(id, car);
-        return new ResponseEntity<>(updatedCar, HttpStatus.OK);
+        return updatedCar != null ? ResponseEntity.ok(updatedCar) : ResponseEntity.notFound().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Car> patchCar(@PathVariable Long id, @RequestBody Car car) {
+        Car updatedCar = carService.patchCar(id, car);
+        return updatedCar != null ? ResponseEntity.ok(car) : ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCar(@PathVariable Long id) {
+        carService.deleteCar(id);
+        return ResponseEntity.noContent().build();
     }
 }
-
-
-//Klasa MyRestController będzie pełnić rolę kontrolera REST (ang. REST controller)
-// w aplikacji Spring Boot. Kontroler REST jest odpowiedzialny za obsługę żądań HTTP
-// przychodzących do aplikacji i mapowanie tych żądań na odpowiednie metody obsługujące logikę biznesową.
-//W tym przypadku, klasa MyRestController będzie obsługiwać następujące operacje na zasobach samochodów
-// (reprezentowanych przez klasę Car):
-//
-//Pobranie listy wszystkich samochodów (GET /cars)
-//Dodanie nowego samochodu (POST /cars)
-//Usunięcie istniejącego samochodu (DELETE /cars/{id})
-//Pobranie informacji o pojedynczym samochodzie (GET /cars/{id})
-//Aktualizacja istniejącego samochodu (PUT /cars/{id})
-//
-//Każda z tych operacji jest zaimplementowana jako metoda w klasie MyRestController,
-// z odpowiednimi adnotacjami mapującymi je na konkretne punkty końcowe (endpoints) REST API.
-//Kontroler REST jest ważnym elementem architektury aplikacji opartej na REST,
-// ponieważ odpowiada za komunikację między zewnętrznymi klientami (np. aplikacjami mobilnymi,
-// web aplikacjami, innymi systemami) a logiką biznesową aplikacji.
-// Dzięki temu użytkownicy lub inne systemy mogą w łatwy sposób korzystać z funkcjonalności aplikacji
-// przez interfejs REST API.

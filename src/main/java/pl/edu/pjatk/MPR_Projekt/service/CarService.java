@@ -1,59 +1,79 @@
 package pl.edu.pjatk.MPR_Projekt.service;
 
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.edu.pjatk.MPR_Projekt.model.Car;
+import pl.edu.pjatk.MPR_Projekt.repository.CarRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Component
+@Service  // zamiast @Component używamy @Service
 public class CarService {
 
-    private static List<Car> cars;
+    private final CarRepository carRepository; // dodajemy pole carRepository
 
-    public CarService() {
-        this.cars = new ArrayList<>();
-        this.cars.add(new Car(1L, "Toyota Corolla", 2015));
-        this.cars.add(new Car(2L, "Honda Civic", 2018));
-        this.cars.add(new Car(3L, "Ford Mustang", 2020));
+    @Autowired // dodajemy wstrzykiwanie zależności
+    public CarService(CarRepository carRepository) {
+        this.carRepository = carRepository;
+        // inicjalizacja przykładowych danych
+        if (getAllCars().isEmpty()) {
+            addCar(new Car(1,"Toyota Corolla", 2015));
+            addCar(new Car(2,"Honda Civic", 2018));
+            addCar(new Car(3,"Ford Mustang", 2020));
+        }
     }
 
-    public static List<Car> getAllCars() {
+    public List<Car> getAllCars() {
+        List<Car> cars = new ArrayList<>();
+        carRepository.findAll().forEach(cars::add);
         return cars;
     }
 
     public Car addCar(Car car) {
-        car.setId(getNextId());
-        cars.add(car);
-        return car;
+        return carRepository.save(car);
     }
 
     public void deleteCar(Long id) {
-        cars.removeIf(car -> car.getId().equals(id));
+        carRepository.deleteById(id);
     }
 
     public Car getCarById(Long id) {
-        Optional<Car> optionalCar = cars.stream()
-                .filter(car -> car.getId().equals(id))
-                .findFirst();
-        return optionalCar.orElse(null);
+        return carRepository.findById(id).orElse(null);
+    }
+
+    public Car getCarByName(String name) {
+        return carRepository.findByName(name).stream().findFirst().orElse(null);
+    }
+
+    public Car getCarByYear(int year) {
+        return carRepository.findByYear(year).stream().findFirst().orElse(null);
     }
 
     public Car updateCar(Long id, Car updatedCar) {
-        Car car = getCarById(id);
-        if (car != null) {
+        Optional<Car> existingCar = carRepository.findById(id);
+        if (existingCar.isPresent()) {
+            Car car = existingCar.get();
             car.setName(updatedCar.getName());
             car.setYear(updatedCar.getYear());
+            return carRepository.save(car);
         }
-        return car;
+        return null;
     }
 
-    private Long getNextId() {
-        return cars.stream()
-                .mapToLong(Car::getId)
-                .max()
-                .orElse(0L) + 1;
+    public Car patchCar(Long id, Car updatedCar) {
+        Optional<Car> existingCar = carRepository.findById(id); // poprawione z CarRepository na carRepository
+        if (existingCar.isPresent()) {
+            Car car = existingCar.get();
+            if (updatedCar.getName() != null) {
+                car.setName(updatedCar.getName());
+            }
+            if (updatedCar.getYear() != 0) {
+                car.setYear(updatedCar.getYear());
+            }
+            return carRepository.save(car);
+        }
+        return null;
     }
 }

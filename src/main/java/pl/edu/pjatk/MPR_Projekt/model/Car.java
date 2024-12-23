@@ -1,14 +1,32 @@
 package pl.edu.pjatk.MPR_Projekt.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
 public class Car {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String name;
     private int year;
+    private int identifier;
 
-    public Car(Long id, String name, int year) {
-        this.id = id;
+    public Car (int id,String name, int year) {
+        this.id = (long) id;
         this.name = name;
         this.year = year;
+        calculateIdentifier();
+
+        }
+    private void calculateIdentifier() {
+        this.identifier = name.chars().sum() + String.valueOf(year).chars().sum();
+    }
+
+    public Car() {
+
     }
 
     public Long getId() {
@@ -35,3 +53,4 @@ public class Car {
         this.year = year;
     }
 }
+
